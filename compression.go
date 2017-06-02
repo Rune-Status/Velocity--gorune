@@ -26,6 +26,9 @@ const (
 	GzipCompression                 = 2
 )
 
+// Decompress takes a raw chunk of filesystem data and attempts to decompress
+// it according to the first byte, which indicates the type of compression.
+// Currently, Bzip2 and Gzip compression are supported, Lzma to be added later.
 func Decompress(compressed []byte) ([]byte, CompressionType, error) {
 	if len(compressed) < 5 {
 		return nil, NoCompression,

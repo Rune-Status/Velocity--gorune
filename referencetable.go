@@ -4,6 +4,8 @@ import (
 	"fmt"
 )
 
+// ReferenceTable represents a table of data holding specifics about
+// the filesystem index, such as the revision of entries, names and checksums.
 type ReferenceTable struct {
 	version    int8
 	revision   int32
@@ -69,8 +71,8 @@ func DecodeReferenceTable(data []byte) (*ReferenceTable, error) {
 		flags := buffer.int8()
 		hasNames := (flags & 1) != 0
 		hasWhirlpool := (flags & 2) != 0
-		bool_3_ := (flags & 4) != 0
-		bool_4_ := (flags & 8) != 0
+		unknown1 := (flags & 4) != 0
+		unknown2 := (flags & 8) != 0
 
 		if table.version >= 7 {
 			table.entryCount = buffer.varint()
@@ -117,7 +119,7 @@ func DecodeReferenceTable(data []byte) (*ReferenceTable, error) {
 		}
 
 		// Unidentified
-		if bool_4_ {
+		if unknown2 {
 			for i := int32(0); i < table.entryCount; i++ {
 				buffer.int32()
 			}
@@ -132,7 +134,7 @@ func DecodeReferenceTable(data []byte) (*ReferenceTable, error) {
 		}
 
 		// Unidentified
-		if bool_3_ {
+		if unknown1 {
 			for i := int32(0); i < table.entryCount; i++ {
 				buffer.int32()
 				buffer.int32()

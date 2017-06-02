@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
-
-	"github.com/Velocity-/microlog"
 )
 
 const SectorLen = 520
@@ -55,6 +53,9 @@ func (fs *FileSystem) FindIndices(folder string) {
 	}
 }
 
+// LoadIndex loads an index from disk and reads the entries into memory for faster
+// lookups without needing to resort to disk operations. It is assumed that the
+// index has size/6 entries, and that each entry is exactly 6 bytes.
 func (fs *FileSystem) LoadIndex(id int, file string) (*Index, error) {
 	indexFile, err := os.Open(file)
 	if err != nil {
@@ -89,7 +90,6 @@ func (fs *FileSystem) LoadIndex(id int, file string) (*Index, error) {
 	}
 	fs.Indices[id] = index
 
-	microlog.Info("Loaded %d index entries.", len(entries))
 	return index, nil
 }
 
