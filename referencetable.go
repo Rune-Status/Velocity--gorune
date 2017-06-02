@@ -127,7 +127,7 @@ func DecodeReferenceTable(data []byte) (*ReferenceTable, error) {
 
 		// Read whirlpool values
 		if hasWhirlpool {
-			table.whirlpool = make([][]byte, table.entryCount)
+			table.whirlpool = make([][]byte, table.size)
 			for i := int32(0); i < table.entryCount; i++ {
 				table.whirlpool[table.ids[i]] = buffer.bytes(64)
 			}
