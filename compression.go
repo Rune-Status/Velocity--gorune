@@ -26,6 +26,8 @@ const (
 	GzipCompression                 = 2
 )
 
+var bzip2Header = []byte{'B', 'Z', 'h', '1'}
+
 // Decompress takes a raw chunk of filesystem data and attempts to decompress
 // it according to the first byte, which indicates the type of compression.
 // Currently, Bzip2 and Gzip compression are supported, Lzma to be added later.
@@ -40,7 +42,7 @@ func Decompress(compressed []byte) ([]byte, CompressionType, error) {
 
 	// If the compression type is 0, we return the data.
 	if compression == NoCompression {
-		return compressed[5 : compressedSize+5], compression, nil
+		return compressed[5: compressedSize+5], compression, nil
 	}
 
 	decompressedSize := binary.BigEndian.Uint32(compressed[5:])
@@ -53,11 +55,11 @@ func Decompress(compressed []byte) ([]byte, CompressionType, error) {
 	if compression == Bzip2Compresion {
 		decompress, err := decompressBzip2(compressed[9:])
 		return decompress, compression, err
-	}
-
-	if compression == GzipCompression {
+	} else if compression == GzipCompression {
 		decompressed, err := decompressGzip(compressed[9:])
 		return decompressed, compression, err
+	} else {
+		return nil, compression, fmt.Errorf("unknown compression type %d", compression)
 	}
 
 	return nil, compression, nil
@@ -69,14 +71,13 @@ func decompressGzip(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid gzip header: %x %x (expected 0x1F 0x8B)", data[0], data[1])
 	}
 
-	buffer := bytes.NewReader(data[10 : len(data)-4])
+	buffer := bytes.NewReader(data[10: len(data)-4])
 	reader := flate.NewReader(buffer)
 	return ioutil.ReadAll(reader)
 }
 
 func decompressBzip2(data []byte) ([]byte, error) {
-	header := []byte{'B', 'Z', 'h', '1'} // Required Bzip2 header
-	buffer := bytes.NewReader(append(header, data[:len(data)-2]...))
-	bzipper := bzip2.NewReader(buffer)
-	return ioutil.ReadAll(bzipper)
+	buffer := bytes.NewReader(append(bzip2Header, data[:len(data)-2]...))
+	reader := bzip2.NewReader(buffer)
+	return ioutil.ReadAll(reader)
 }
